@@ -4,7 +4,7 @@ defmodule Loggregate.Repo.Migrations.CreateLogEntries do
   def change do
     create table(:log_entries) do
       add :timestamp, :naive_datetime
-      add :message, :string
+      add :log_data, :map
 
       timestamps()
     end

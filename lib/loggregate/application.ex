@@ -11,9 +11,10 @@ defmodule Loggregate.Application do
       # Start the Ecto repository
       Loggregate.Repo,
       # Start the endpoint when the application starts
-      LoggregateWeb.Endpoint
+      LoggregateWeb.Endpoint,
       # Starts a worker by calling: Loggregate.Worker.start_link(arg)
       # {Loggregate.Worker, arg},
+      {Loggregate.LogReceiver.UdpListener, 26015}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

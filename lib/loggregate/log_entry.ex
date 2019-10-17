@@ -3,7 +3,7 @@ defmodule Loggregate.LogEntry do
   import Ecto.Changeset
 
   schema "log_entries" do
-    field :message, :string
+    field :log_data, :map
     field :timestamp, :naive_datetime
 
     timestamps()
@@ -12,7 +12,7 @@ defmodule Loggregate.LogEntry do
   @doc false
   def changeset(log_entry, attrs) do
     log_entry
-    |> cast(attrs, [:timestamp, :message])
-    |> validate_required([:timestamp, :message])
+    |> cast(attrs, [:timestamp, :log_data])
+    |> validate_required([:timestamp, :log_data])
   end
 end
