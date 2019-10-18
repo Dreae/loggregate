@@ -1,9 +1,13 @@
 defmodule Loggregate.LogReceiver.LogIngestWorker do
-  alias Loggregate.ServerMapping
+  alias Loggregate.{Repo, LogEntry}
+  alias Loggregate.LogReceiver.LogParser
 
   def log_msg_passwd(data) do
-    [server_id, message] = :binary.split(data, "L")
-    # TODO: Load server name and insert entry
-    IO.puts(String.trim(message))
+    [password, message] = :binary.split(data, "L")
+    {server_id, _} = Integer.parse(password)
+    {timestamp, log_data} = LogParser.parse(message)
+    %LogEntry{}
+    |> LogEntry.changeset(%{timestamp: timestamp, log_data: Map.put_new(log_data, :server, server_id)})
+    |> Repo.insert()
   end
 end

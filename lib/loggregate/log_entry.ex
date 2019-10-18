@@ -5,8 +5,6 @@ defmodule Loggregate.LogEntry do
   schema "log_entries" do
     field :log_data, :map
     field :timestamp, :naive_datetime
-
-    timestamps()
   end
 
   @doc false
