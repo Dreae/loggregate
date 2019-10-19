@@ -1,6 +1,7 @@
 defmodule Loggregate.LogSearch do
   import Ecto.Query
   alias Loggregate.LikeQuery
+  alias Loggregate.ServerMapping
 
   def search_line(search_term) do
     dynamic(fragment("(to_tsvector('english', log_data ->> 'line') @@ plainto_tsquery('english', ?))", ^search_term))
@@ -11,7 +12,7 @@ defmodule Loggregate.LogSearch do
   end
 
   def search_server(server_id) do
-    dynamic(fragment("(jsonb_exists(log_data -> 'server', ?))", ^server_id))
+    dynamic(fragment("(log_data -> 'server')::integer") == ^server_id)
   end
 
   def search_type(type) do
@@ -30,8 +31,12 @@ defmodule Loggregate.LogSearch do
     dynamic(ilike(fragment("log_data -> 'from' ->> 'steamid'"), ^"%#{LikeQuery.like_sanitize(steamid)}%"))
   end
 
+  def search_address(address) do
+    dynamic(ilike(fragment("(log_data ->> 'address')"), ^"%#{LikeQuery.like_sanitize(address)}%"))
+  end
+
   def build_search_conditions(search_string) do
-    {opts, args, _} = OptionParser.parse(OptionParser.split(search_string), strict: [type: :string, cvar: :string, server: :string, name: :string, steamid: :string])
+    {opts, args, _} = OptionParser.parse(OptionParser.split(search_string), strict: [type: :string, cvar: :string, server: :string, name: :string, steamid: :string, address: :string])
     conditions = true
     conditions = unless opts[:cvar] == nil do
       dynamic(^search_cvar(opts[:cvar]) and ^conditions)
@@ -40,7 +45,12 @@ defmodule Loggregate.LogSearch do
     end
 
     conditions = unless opts[:server] == nil do
-      dynamic(^search_server(opts[:server]) and ^conditions)
+      server = ServerMapping.search_by_server_name(opts[:server])
+      if server != nil do
+        dynamic(^search_server(server.server_id) and ^conditions)
+      else
+        conditions
+      end
     else
       conditions
     end
@@ -53,6 +63,12 @@ defmodule Loggregate.LogSearch do
 
     conditions = unless opts[:steamid] == nil do
       dynamic(^search_chat_steamid(opts[:steamid]) and ^conditions)
+    else
+      conditions
+    end
+
+    conditions = unless opts[:address] == nil do
+      dynamic(^search_address(opts[:address]) and ^conditions)
     else
       conditions
     end

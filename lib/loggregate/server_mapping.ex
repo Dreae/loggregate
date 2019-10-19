@@ -1,18 +1,19 @@
 defmodule Loggregate.ServerMapping do
-  use Ecto.Schema
-  import Ecto.Changeset
+  import Ecto.Query
+  alias Loggregate.Repo
+  alias Loggregate.ServerMapping.ServerMapping
 
-  schema "server_mapping" do
-    field :server_id, :integer
-    field :server_name, :string
-
-    timestamps()
+  def search_by_server_id(id) do
+    Repo.one(from s in ServerMapping, where: s.server_id == ^id)
   end
 
-  @doc false
-  def changeset(server_mapping, attrs) do
-    server_mapping
-    |> cast(attrs, [:server_id, :server_name])
-    |> validate_required([:server_id, :server_name])
+  def search_by_server_name(name) do
+    Repo.one(from s in ServerMapping, where: s.server_name == ^name)
+  end
+
+  def create_server_mapping(id, name) do
+    %ServerMapping{}
+    |> ServerMapping.changeset(%{server_id: id, server_name: name})
+    |> Repo.insert()
   end
 end
