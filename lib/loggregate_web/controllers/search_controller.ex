@@ -4,15 +4,54 @@ defmodule LoggregateWeb.SearchController do
   alias Loggregate.{Repo, LogEntry, LogSearch}
   alias Loggregate.ServerMapping.ServerMapping
 
+  def index(conn, %{"query" => query, "date_range" => date_range}) do
+    {start_date, end_date} = parse_date_range(date_range)
+    results = search_log_entries(LogSearch.build_search_conditions(query), {start_date, end_date})
+    render(conn, "index.html", results: results, start_date: start_date, end_date: end_date, query: query)
+  end
+
   def index(conn, %{"query" => query}) do
-    query = from e in LogEntry, where: ^LogSearch.build_search_conditions(query), join: s in ServerMapping, on: s.server_id == fragment("(log_data -> 'server')::integer")
-    results = Repo.all(from [e, s] in query, select: {e.timestamp, e.log_data, s.server_name})
-    render(conn, "index.html", results: results)
+    {start_date, end_date} = default_date_range()
+    results = search_log_entries(LogSearch.build_search_conditions(query), {start_date, end_date})
+    render(conn, "index.html", results: results, start_date: start_date, end_date: end_date, query: query)
   end
 
   def index(conn, _params) do
-    query = from e in LogEntry, join: s in ServerMapping, on: s.server_id == fragment("(log_data -> 'server')::integer")
-    results = Repo.all(from [e, s] in query, select: {e.timestamp, e.log_data, s.server_name})
-    render(conn, "index.html", results: results)
+    {start_date, end_date} = default_date_range()
+    results = search_log_entries(true, {start_date, end_date})
+    render(conn, "index.html", results: results, start_date: start_date, end_date: end_date, query: "")
+  end
+
+  def search_log_entries(conditions, {start_date, end_date}) do
+    query = from e in LogEntry,
+      join: s in ServerMapping, on: s.server_id == fragment("(log_data -> 'server')::integer"),
+      where: ^dynamic([e], e.timestamp >= ^start_date and e.timestamp <= ^end_date and ^conditions)
+    Repo.all(from [e, s] in query, select: {e.timestamp, e.log_data, s.server_name}, order_by: [desc: e.timestamp, desc: e.id], limit: 50)
+  end
+
+  def default_date_range() do
+    end_date = NaiveDateTime.from_erl!(:calendar.local_time())
+    start_date = NaiveDateTime.add(end_date, -14 * 24 * 3600)
+
+    {start_date, end_date}
+  end
+
+  def parse_date_range(date_range) do
+    IO.puts(date_range)
+    [_, start_date, end_date] = Regex.run(~r/^([0-9\/:\s]+) - ([0-9\/:\s]+)$/, date_range)
+    {:ok, start_timestamp} = parse_date(start_date)
+    {:ok, end_timestamp} = parse_date(end_date)
+
+    {start_timestamp, end_timestamp}
+  end
+
+  def parse_date(date) do
+    [_, month, day, year, hour, minute] = Regex.run(~r/^(\d+)\/(\d+)\/(\d+)\s+(\d+):(\d+)$/, date)
+    [month, day, year, hour, minute] = Enum.map([month, day, year, hour, minute], fn i ->
+      {int, _} = Integer.parse(i)
+      int
+    end)
+
+    NaiveDateTime.from_erl({{year, month, day}, {hour, minute, 0}})
   end
 end

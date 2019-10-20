@@ -10,8 +10,12 @@ import css from "../css/app.css"
 // Import dependencies
 //
 import "phoenix_html"
+import bulmaCalendar from "bulma-calendar"
+
 
 // Import local files
 //
 // Local files can be imported directly using relative paths, for example:
 // import socket from "./socket"
+
+bulmaCalendar.attach('[type="date"]');
