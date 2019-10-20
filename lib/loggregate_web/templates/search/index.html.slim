@@ -10,7 +10,16 @@ section.hero.is-fullheight.is-medium.is-primary.is-bold
                   = text_input f, :query, class: "input", placeholder: "Search"
                   span.icon.is-small.is-left
                     i.fa.fa-search
-            = for result <- @results do
-              article.media
-                .media-content
-                = result.log_data["line"]
+            table.table.is-fullwidth
+              thead
+                th Timestamp
+                th Server
+                th Line
+              = for {timestamp, log_data, server_name} <- @results do
+                tr
+                  td width="20%"
+                    = timestamp
+                  td width="20%"
+                    = server_name
+                  td
+                    = log_data["line"]

@@ -55,6 +55,12 @@ defmodule Loggregate.LogSearch do
       conditions
     end
 
+    conditions = unless opts[:type] == nil do
+      dynamic(^search_type(opts[:type]) and ^conditions)
+    else
+      conditions
+    end
+
     conditions = unless opts[:name] == nil do
       dynamic(^search_chat_name(opts[:name]) and ^conditions)
     else
