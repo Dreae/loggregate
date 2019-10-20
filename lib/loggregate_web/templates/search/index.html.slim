@@ -1,0 +1,16 @@
+section.hero.is-fullheight.is-medium.is-primary.is-bold
+  .container.is-fluid style="margin-top: 32px"
+    .columns.is-centered
+      .column.is-three-quarters
+        .card
+          .card-content
+            = form_for @conn, Routes.search_path(@conn, :index), [method: :get], fn f ->
+              .field
+                p.control.has-icons-left
+                  = text_input f, :query, class: "input", placeholder: "Search"
+                  span.icon.is-small.is-left
+                    i.fa.fa-search
+            = for result <- @results do
+              article.media
+                .media-content
+                = result.log_data["line"]
