@@ -3,7 +3,11 @@ defmodule LoggregateWeb.PageController do
   alias Loggregate.Accounts
 
   def index(conn, _params) do
-    render(conn, "index.html")
+    if conn.assigns[:user] do
+      redirect(conn, to: Routes.search_path(conn, :index))
+    else
+      render(conn, "index.html")
+    end
   end
 
   def do_login(conn, %{"username" => username, "password" => password}) do

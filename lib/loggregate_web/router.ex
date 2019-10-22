@@ -26,6 +26,7 @@ defmodule LoggregateWeb.Router do
     pipe_through :authenticate
 
     get "/", SearchController, :index
+    get "/log/:log_id", SearchController, :log_detail
   end
 
   # Other scopes may use custom stacks.
