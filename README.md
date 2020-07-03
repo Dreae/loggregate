@@ -1,3 +1,6 @@
+# Archived
+See https://github.com/GFLClan/loggregate for current development
+
 # Loggregate
 
 To start your Phoenix server:
